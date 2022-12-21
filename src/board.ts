@@ -136,20 +136,91 @@ export function swapPieces<T>(
     if (!canMove(board, first, second)) return board;
     const boardCopy = copyBoard(board)
 
-    const { col: colFrist, row: rowFirst } = first;
+    const { col: colFirst, row: rowFirst } = first;
     const { col: colSecond, row: rowSecond } = second;
-    const temp = boardCopy.boardPositions[colFrist][rowFirst];
+    const temp = boardCopy.boardPositions[colFirst][rowFirst];
 
-    boardCopy.boardPositions[colFrist][rowFirst] =
+    boardCopy.boardPositions[colFirst][rowFirst] =
         boardCopy.boardPositions[colSecond][rowSecond];
     boardCopy.boardPositions[colSecond][rowSecond] = temp;
     return boardCopy;
 }
 
-export function getAllMatches<T>(board: Board<T>): Match<T>[] {
+export function removeMatchesFromBoard<T>(board: Board<T>, matchesArray: Match<T>[]): Board<T> {
+    const boardResult = copyBoard(board);
 
+    return matchesArray.reduce((acc, match) => {
+        match.positions.forEach(pos => {
+            acc[pos.row][pos.col] = null;
+        });
+        return acc;
+    }, boardResult);
+}
 
+function rearrangeArray(arr: (string)[]): (string)[] {
 
+    const filledPositions = arr.filter(val => val !== null);
+
+    const emptyPositions = new Array(arr.length - filledPositions.length).fill(null);
+
+    return emptyPositions.concat(filledPositions);
+}
+
+export function fillBoardAfterRemoval<T>(board: Board<T>) {
+
+    for (let x = 0; x < board.width; x++) {
+        let columnToReorganize = []
+        for(let y = 0; y < board.height; y++) {
+                columnToReorganize.push(board[x][y])
+            }
+        columnToReorganize = rearrangeArray(columnToReorganize);
+        for(let i = 0; i < board.height; i++) {
+            board.boardPositions[x][i] = columnToReorganize[i];
+        }
+    }
+    return board;
+}
+
+function getMatches<T>(board: Board<T>, minLength: number): Match<T>[] {
+    const matches: Match<T>[] = [];
+
+    board.boardPositions.forEach((row, rowIndex) => {
+        row.forEach((current, colIndex) => {
+            if (current === "") {
+                return;
+            }
+
+            if (colIndex < row.length - minLength + 1) {
+                const horizontalMatch = row.slice(colIndex, colIndex + minLength);
+                if (horizontalMatch.every((val) => val === current)) {
+                    matches.push({
+                        matched: current,
+                        positions: horizontalMatch.map((_, i) => ({
+                            row: rowIndex,
+                            col: colIndex + i,
+                        })),
+                    });
+                }
+            }
+
+            if (rowIndex < board.boardPositions.length - minLength + 1) {
+                const verticalMatch = board.boardPositions
+                    .slice(rowIndex, rowIndex + minLength)
+                    .map((row) => row[colIndex]);
+                if (verticalMatch.every((val) => val === current)) {
+                    matches.push({
+                        matched: current,
+                        positions: verticalMatch.map((_, i) => ({
+                            row: rowIndex + i,
+                            col: colIndex,
+                        })),
+                    });
+                }
+            }
+        });
+    });
+
+    return matches;
 }
 
 const implementacjaGeneratorka = () => getRandomValue(["A", "B", "C"]);
@@ -166,31 +237,20 @@ function getRandomValue<T>(values: T[]): T {
 const boardzik = create(generatorek, 4, 4);
 console.log("before move", boardzik.boardPositions);
 
-const pos1: Position = {
-    row: 1,
-    col: 0,
-};
 
-const pos2: Position = {
-    row: 2,
-    col: 0,
-};
 
-swapPieces(boardzik, pos1, pos2);
-console.log("after move", boardzik.boardPositions);
+const bartekCode  = <T>(board: Board<T>, first: Position, second: Position): boolean => {
+    const poss = [first, second];
+    poss.map(pos => {
 
-// const bartekCode  = <T>(board: Board<T>, first: Position, second: Position): boolean => {
-//     const poss = [first, second];
-//     poss.map(pos => {
-//
-//         const counts = board[pos.col]
-//             .reduce((accu, next) =>
-//                     (accu.break ?
-//                         (next == board[pos.col][pos.col] ?
-//                             {count: accu.count++, break: false}
-//                             : {count: accu.count, break: true})
-//                         : {count: accu.count, break: accu.break}),
-//                 ({count: 0, break: false} as { count: number, break: boolean }))
-//     })
-//     return true
-// }
+        const counts = board[pos.col]
+            .reduce((accu, next) =>
+                    (accu.break ?
+                        (next == board[pos.col][pos.col] ?
+                            {count: accu.count++, break: false}
+                            : {count: accu.count, break: true})
+                        : {count: accu.count, break: accu.break}),
+                ({count: 0, break: false} as { count: number, break: boolean }))
+    })
+    return true
+}

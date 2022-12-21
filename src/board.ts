@@ -1,3 +1,5 @@
+import { isMoveLegal } from "./isMoveLegal";
+
 export type Generator<T> = { next: () => T };
 
 export type Position = {
@@ -68,39 +70,6 @@ export function piece<T>(
     return board[col][row];
 }
 
-const isSwapLegal = (pos1: number, pos2: number) => {
-    if (pos1 === pos2) return true;
-    if (pos1 === pos2 + 1) return true;
-    return pos2 > 0 && pos1 === pos2 - 1;
-};
-
-const isRowSwapLegal = (pos1: Position, pos2: Position) =>
-    isSwapLegal(pos1.row, pos2.row);
-const isColSwapLegal = (pos1: Position, pos2: Position) =>
-    isSwapLegal(pos1.col, pos2.col);
-
-const isNotSamePosition = (first: Position, second: Position) =>
-    !(first.col === second.col && second.row === first.row);
-const isRowAndColumnInVicinity = (
-    first: Position,
-    second: Position
-): boolean => {
-    return (
-        (first.row === second.row && first.col !== second.col) ||
-        (first.row !== second.row && first.col === second.col)
-    );
-};
-const validators = [
-    isRowSwapLegal,
-    isColSwapLegal,
-    isNotSamePosition,
-    isRowAndColumnInVicinity,
-];
-
-const isMoveLegal = (pos1: Position, pos2: Position) =>
-    validators
-        .map((validator) => validator.apply(null, [pos1, pos2]))
-        .every((val) => val === true);
 
 export function canMove<T>(
     board: Board<T>,
@@ -223,7 +192,7 @@ function getMatches<T>(board: Board<T>, minLength: number): Match<T>[] {
     return matches;
 }
 
-const implementacjaGeneratorka = () => getRandomValue(["A", "B", "C"]);
+const implementacjaGeneratorka = () => getRandomValue(["A", "A", "C"]);
 
 const generatorek = {
     next: implementacjaGeneratorka,
@@ -236,6 +205,8 @@ function getRandomValue<T>(values: T[]): T {
 
 const boardzik = create(generatorek, 4, 4);
 console.log("before move", boardzik.boardPositions);
+const matches = getMatches(boardzik, 3)
+console.dir(matches, {depth: null})
 
 
 

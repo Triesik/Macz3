@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals'
-import { Effect, Generator } from '../src/board'
-import * as Board from '../src/board'
+import { Effect, Generator } from '../my-app/board'
+import * as Board from '../my-app/board'
 
 class CyclicGenerator implements Generator<string> {
     private sequence: string

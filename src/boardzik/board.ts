@@ -107,7 +107,7 @@ export function removeMatchesFromBoard<T>(board: Board<T>, matchesArray: Match<T
 
     return matchesArray.reduce((acc, match) => {
         match.positions.forEach(pos => {
-            acc[pos.row][pos.col] = null;
+            acc.boardPositions[pos.row][pos.col] = null;
         });
         return acc;
     }, boardResult);
@@ -122,7 +122,6 @@ function rearrangeArray<T>(arr: T[]): T[] {
 }
 
 export function fillBoardAfterRemoval<T>(board: Board<T>) {
-
     for (let x = 0; x < board.width; x++) {
         let columnToReorganize: T[] = [];
         for (let y = 0; y < board.height; y++) {

@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import GameScreen from "./GameScreen"
-import Stuff from "./Stuff"
+import ScoreBoard from "./ScoreBoard"
 import Game from "./Game"
 import Login from "./Login"
 

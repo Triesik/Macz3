@@ -1,197 +1,196 @@
- import { isMoveLegal } from "./isMoveLegal";
+import { isMoveLegal } from "./isMoveLegal.ts";
 
- export type Generator<T> = { next: () => T };
+export type Generator<T> = { next: () => T };
 
- export type Position = {
-     row: number;
-     col: number;
- };
+export type Position = {
+    row: number;
+    col: number;
+};
 
- export type Match<T> = {
-     matched: T;
-     positions: Position[];
- };
+export type Match<T> = {
+    matched: T;
+    positions: Position[];
+};
 
- export type Board<T> = {
-     width: number;
-     height: number;
-     boardPositions: T[][];
- };
-
-
- type MatchEffect<T> = {
-     kind: "Match",
-     match : {
-         matched: T,
-         positions: Position[];
-     }
- }
-
- type RefillEffect = {
-     kind: "Refill"
- }
-
- export type Effect<T> = MatchEffect<T> | RefillEffect
-
- export type MoveResult<T> = {
-     board: Board<T>;
-     effects: Effect<T>[];
- };
-
- const copyBoard = <T>(board: Board<T>): Board<T> => {
-     const boardCopy = board.boardPositions.map((row) => [...row]);
-     return {
-         width: board.width,
-         height: board.height,
-         boardPositions: boardCopy,
-     };
- };
-
- export function create<T>(
-     generator: Generator<T>,
-     width: number,
-     height: number
- ): Board<T> {
-     const board = Array.from(Array(width), () =>
-         Array.from({ length: height }).map(generator.next)
-     );
-
-     return {
-         width,
-         height,
-         boardPositions: board,
-     };
- }
-
- export function piece<T>(
-     board: Board<T>,
-     { col, row }: Position
- ): T | undefined {
-     return board[col][row];
- }
+export type Board<T> = {
+    width: number;
+    height: number;
+    boardPositions: T[][];
+};
 
 
- export function canMove<T>(
-     board: Board<T>,
-     first: Position,
-     second: Position
- ): boolean {
-     if (isMoveLegal(first, second)) {
-         console.log("lol");
-         const swapCopy = swapPieces(board, first, second)
-         return true;
-     }
-     return false;
- }
+type MatchEffect<T> = {
+    kind: "Match",
+    match: {
+        matched: T,
+        positions: Position[];
+    }
+}
 
- export function swapPieces<T>(
-     board: Board<T>,
-     first: Position,
-     second: Position
- ): Board<T> {
-     if (!canMove(board, first, second)) return board;
-     const boardCopy = copyBoard(board)
+type RefillEffect = {
+    kind: "Refill"
+}
 
-     const { col: colFirst, row: rowFirst } = first;
-     const { col: colSecond, row: rowSecond } = second;
-     const temp = boardCopy.boardPositions[colFirst][rowFirst];
+export type Effect<T> = MatchEffect<T> | RefillEffect
 
-     boardCopy.boardPositions[colFirst][rowFirst] =
-         boardCopy.boardPositions[colSecond][rowSecond];
-     boardCopy.boardPositions[colSecond][rowSecond] = temp;
-     return boardCopy;
- }
+export type MoveResult<T> = {
+    board: Board<T>;
+    effects: Effect<T>[];
+};
 
- export function removeMatchesFromBoard<T>(board: Board<T>, matchesArray: Match<T>[]): Board<T> {
-     const boardResult = copyBoard(board);
+const copyBoard = <T>(board: Board<T>): Board<T> => {
+    const boardCopy = board.boardPositions.map((row) => [...row]);
+    return {
+        width: board.width,
+        height: board.height,
+        boardPositions: boardCopy,
+    };
+};
 
-     return matchesArray.reduce((acc, match) => {
-         match.positions.forEach(pos => {
-             acc[pos.row][pos.col] = null;
-         });
-         return acc;
-     }, boardResult);
- }
+export function create<T>(
+    generator: Generator<T>,
+    width: number,
+    height: number
+): Board<T> {
+    const board = Array.from(Array(width), () =>
+        Array.from({ length: height }).map(generator.next)
+    );
 
- function rearrangeArray(arr: (string)[]): (string)[] {
+    return {
+        width,
+        height,
+        boardPositions: board,
+    };
+}
 
-     const filledPositions = arr.filter(val => val !== null);
+export function piece<T>(
+    board: Board<T>,
+    { col, row }: Position
+): T | undefined {
+    return board[col][row];
+}
 
-     const emptyPositions = new Array(arr.length - filledPositions.length).fill(null);
 
-     return emptyPositions.concat(filledPositions);
- }
+export function canMove<T>(
+    board: Board<T>,
+    first: Position,
+    second: Position
+): boolean {
+    if (isMoveLegal(first, second)) {
+        console.log("lol");
+        // const swapCopy = swapPieces(board, first, second)
+        return true;
+    }
+    return false;
+}
 
- export function fillBoardAfterRemoval<T>(board: Board<T>) {
+export function swapPieces<T>(
+    board: Board<T>,
+    first: Position,
+    second: Position
+): Board<T> {
+    if (!canMove(board, first, second)) return board;
+    const boardCopy = copyBoard(board)
 
-     for (let x = 0; x < board.width; x++) {
-         let columnToReorganize = []
-         for(let y = 0; y < board.height; y++) {
-                 columnToReorganize.push(board[x][y])
-             }
-         columnToReorganize = rearrangeArray(columnToReorganize);
-         for(let i = 0; i < board.height; i++) {
-             board.boardPositions[x][i] = columnToReorganize[i];
-         }
-     }
-     return board;
- }
+    const { col: colFirst, row: rowFirst } = first;
+    const { col: colSecond, row: rowSecond } = second;
+    const temp = boardCopy.boardPositions[colFirst][rowFirst];
 
- export function getMatches<T>(board: Board<T>, minLength: number): Match<T>[] {
-     const matches: Match<T>[] = [];
+    boardCopy.boardPositions[colFirst][rowFirst] =
+        boardCopy.boardPositions[colSecond][rowSecond];
+    boardCopy.boardPositions[colSecond][rowSecond] = temp;
+    return boardCopy;
+}
 
-     board.boardPositions.forEach((row, rowIndex) => {
-         row.forEach((current, colIndex) => {
-             // @ts-ignore
-             if (current === "") {
-                 return;
-             }
+export function removeMatchesFromBoard<T>(board: Board<T>, matchesArray: Match<T>[]): Board<T> {
+    const boardResult = copyBoard(board);
 
-             if (colIndex < row.length - minLength + 1) {
-                 const horizontalMatch = row.slice(colIndex, colIndex + minLength);
-                 if (horizontalMatch.every((val) => val === current)) {
-                     matches.push({
-                         matched: current,
-                         positions: horizontalMatch.map((_, i) => ({
-                             row: rowIndex,
-                             col: colIndex + i,
-                         })),
-                     });
-                 }
-             }
+    return matchesArray.reduce((acc, match) => {
+        match.positions.forEach(pos => {
+            acc[pos.row][pos.col] = null;
+        });
+        return acc;
+    }, boardResult);
+}
 
-             if (rowIndex < board.boardPositions.length - minLength + 1) {
-                 const verticalMatch = board.boardPositions
-                     .slice(rowIndex, rowIndex + minLength)
-                     .map((row) => row[colIndex]);
-                 if (verticalMatch.every((val) => val === current)) {
-                     matches.push({
-                         matched: current,
-                         positions: verticalMatch.map((_, i) => ({
-                             row: rowIndex + i,
-                             col: colIndex,
-                         })),
-                     });
-                 }
-             }
-         });
-     });
+function rearrangeArray<T>(arr: T[]): T[] {
+    const filledPositions = arr.filter(val => val !== null);
 
-     return matches;
- }
+    const emptyPositions = new Array(arr.length - filledPositions.length).fill(null);
 
- const implementacjaGeneratorka = () => getRandomValue(["A", "A", "C"]);
+    return emptyPositions.concat(filledPositions);
+}
 
- const generatorek = {
-     next: implementacjaGeneratorka,
- };
+export function fillBoardAfterRemoval<T>(board: Board<T>) {
 
- function getRandomValue<T>(values: T[]): T {
-     const index = Math.floor(Math.random() * values.length);
-     return values[index];
- }
+    for (let x = 0; x < board.width; x++) {
+        let columnToReorganize: T[] = [];
+        for (let y = 0; y < board.height; y++) {
+            columnToReorganize.push(board.boardPositions[x][y])
+        }
+        columnToReorganize = rearrangeArray(columnToReorganize);
+        for (let i = 0; i < board.height; i++) {
+            board.boardPositions[x][i] = columnToReorganize[i];
+        }
+    }
+    return board;
+}
 
- const boardzik = create(generatorek, 4, 4);
- console.log("before move", boardzik.boardPositions);
- const matches = getMatches(boardzik, 3)
- console.dir(matches, {depth: null})
+export function getMatches<T>(board: Board<T>, minLength: number): Match<T>[] {
+    const matches: Match<T>[] = [];
+
+    board.boardPositions.forEach((row, rowIndex) => {
+        row.forEach((current, colIndex) => {
+            // @ts-ignore
+            if (current === "") {
+                return;
+            }
+
+            if (colIndex < row.length - minLength + 1) {
+                const horizontalMatch = row.slice(colIndex, colIndex + minLength);
+                if (horizontalMatch.every((val) => val === current)) {
+                    matches.push({
+                        matched: current,
+                        positions: horizontalMatch.map((_, i) => ({
+                            row: rowIndex,
+                            col: colIndex + i,
+                        })),
+                    });
+                }
+            }
+
+            if (rowIndex < board.boardPositions.length - minLength + 1) {
+                const verticalMatch = board.boardPositions
+                    .slice(rowIndex, rowIndex + minLength)
+                    .map((row) => row[colIndex]);
+                if (verticalMatch.every((val) => val === current)) {
+                    matches.push({
+                        matched: current,
+                        positions: verticalMatch.map((_, i) => ({
+                            row: rowIndex + i,
+                            col: colIndex,
+                        })),
+                    });
+                }
+            }
+        });
+    });
+
+    return matches;
+}
+
+const implementacjaGeneratorka = () => getRandomValue(["A", "A", "C"]);
+
+export const generatorek = {
+    next: implementacjaGeneratorka,
+};
+
+function getRandomValue<T>(values: T[]): T {
+    const index = Math.floor(Math.random() * values.length);
+    return values[index];
+}
+
+const boardzik = create(generatorek, 4, 4);
+console.log("before move", boardzik.boardPositions);
+const matches = getMatches(boardzik, 3)
+console.dir(matches, { depth: null })

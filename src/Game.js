@@ -1,23 +1,38 @@
 import * as Board from "./boardzik/board.ts";
-import { generator } from "./boardzik/generator.ts";
-import React, { Component, useState } from "react";
+import {generator} from "./boardzik/generator.ts";
+import React, {useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {recreate, swap} from "./redux/GameSlice";
 
 const generateBoard = () => Board.create(generator, 7, 7).boardPositions;
 
 function Game() {
 
-    const [board, setBoard] = useState(generateBoard());
+    // const [board, setBoard] = useState(generateBoard());
     const [selected, setSelected] = useState([]);
+
+    const board = useSelector(state => state.game.boardPositions)
+    const dispatch = useDispatch();
 
     const handlePieceSelection = (col, row) => {
         if (isPieceSelected(col, row)) return;
-        if (selected.length === 2) return setSelected([]);
+        // if (selected.length === 2) return setSelected([]);
+        setSelected(prev => [...prev, {col, row}]);
 
-        setSelected(prev => [...prev, { col, row }]);
+        if (selected.length === 1) swapPieces([...selected, {col, row}]);
     };
 
+    const swapPieces = (selected) => {
+        dispatch(swap({
+            firstPosition: selected[0],
+            secondPosition: selected[1]
+        }));
+        setSelected([]);
+    }
+
     const resetBoard = () => {
-        setBoard(generateBoard);
+        // setBoard(generateBoard);
+        dispatch(recreate());
     };
 
     const isPieceSelected = (col, row) => selected.filter(position => position.col === col && position.row === row).length > 0;
@@ -31,7 +46,7 @@ function Game() {
                     <div className="flex gap-6">
                         {col.map((row, rowIndex) =>
                             <button onClick={() => handlePieceSelection(colIndex, rowIndex)}
-                                    className={`${isPieceSelected(colIndex, rowIndex) ? "bg-blue text-white" : ""}  w-20 h-20 border-black border flex  items-center text-black  justify-center`}>
+                                    className={`${isPieceSelected(colIndex, rowIndex) ? "bg-blue-500 text-white" : ""}  w-20 h-20 border-black border flex  items-center text-black  justify-center`}>
                                 {row}
                             </button>)}
                     </div>)

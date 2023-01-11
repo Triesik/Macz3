@@ -6,12 +6,12 @@ import Login from "./Login"
 
 function App() {
     return (
-        <div className="App">
+        <div className="h-full">
             <Routes>
-                <Route path="/" element={ <Login/> } />
-                <Route path="gamescreen" element={ <GameScreen/> } />
-                <Route path="game" element={ <Game/> } />
-                <Route path="scoreboard" element={ <ScoreBoard/> } />
+                <Route path="/" element={<Login />} />
+                <Route path="gamescreen" element={<GameScreen />} />
+                <Route path="gamescreen/game" element={<Game />} />
+                <Route path="gamescreen/scoreboard" element={<ScoreBoard />} />
             </Routes>
         </div>
     )
